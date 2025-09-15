@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form</title>
+    <link rel="stylesheet" href="form.css">
+</head>
+
+<body>
+<?php
+$errors = [];
+$values = [];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // First Name
+    $values['firstName'] = trim($_POST['firstName'] ?? '');
+    if (strlen($values['firstName']) < 4 || strlen($values['firstName']) > 10 || !preg_match('/^[A-Za-z]+$/', $values['firstName'])) {
+        $errors['firstName'] = "First name must be 4-10 letters.";
+    }
+    // Last Name
+    $values['lastName'] = trim($_POST['lastName'] ?? '');
+    if (strlen($values['lastName']) < 4 || strlen($values['lastName']) > 10 || !preg_match('/^[A-Za-z]+$/', $values['lastName'])) {
+        $errors['lastName'] = "Last name must be 4-10 letters.";
+    }
+    // Address 1
+    $values['address1'] = trim($_POST['address1'] ?? '');
+    if (strlen($values['address1']) < 4 || strlen($values['address1']) > 50) {
+        $errors['address1'] = "Address 1 must be 4-50 characters.";
+    }
+    // City
+    $values['city'] = trim($_POST['city'] ?? '');
+    if (strlen($values['city']) < 4 || strlen($values['city']) > 20) {
+        $errors['city'] = "City must be 4-20 characters.";
+    }
+    // State
+    $values['state'] = $_POST['state'] ?? '';
+    if (!$values['state']) {
+        $errors['state'] = "Please select a state.";
+    }
+    // Zip Code
+    $values['zipCode'] = trim($_POST['zipCode'] ?? '');
+    if (!preg_match('/^\d{4,10}$/', $values['zipCode'])) {
+        $errors['zipCode'] = "Zip code must be 4-10 digits.";
+    }
+    // Country
+    $values['country'] = $_POST['country'] ?? '';
+    if (!$values['country']) {
+        $errors['country'] = "Please select a country.";
+    }
+    // Email
+    $values['email'] = trim($_POST['email'] ?? '');
+    if (!preg_match('/^[A-Za-z][A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/', $values['email'])) {
+        $errors['email'] = "Email must start with a letter and be valid.";
+    }
+    // Donation Amount
+    $values['Amount'] = $_POST['Amount'] ?? '';
+    if (!$values['Amount']) {
+        $errors['Amount'] = "Please select a donation amount.";
+    }
+    // Other Amount
+    $values['amount'] = trim($_POST['amount'] ?? '');
+    if ($values['Amount'] === 'other' && (!$values['amount'] || $values['amount'] < 1)) {
+        $errors['amount'] = "Enter a valid amount.";
+    }
+}
+?>
+    <form method="post" action="" class="form-contain" id="donorForm" novalidate>
+        <?php if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$errors): ?>
+            <div style="color:green;font-weight:bold;">Form submitted successfully!</div>
+        <?php endif; ?>
+        <h2>Donor Information</h2>
+        <div class="form-group">
+            <label for="firstName">First Name* </label>
+            <input type="text" id="firstName" name="firstName" required value="<?= htmlspecialchars($values['firstName'] ?? '') ?>">
+            <span class="error"><?= $errors['firstName'] ?? '' ?></span>
+        </div>
+        <div class="form-group">
+            <label for="lastName">Last Name* </label>
+            <input type="text" id="lastName" name="lastName" required value="<?= htmlspecialchars($values['lastName'] ?? '') ?>">
+            <span class="error"><?= $errors['lastName'] ?? '' ?></span>
+        </div>
+        <div class="form-group">
+            <label for="company">Company </label>
+            <input type="text" id="company" name="company" value="<?= htmlspecialchars($values['company'] ?? '') ?>">
+        </div> 
+        <div class="form-group">
+            <label for="address1">Address 1* </label>
+            <input type="text" id="address1" name="address1" required value="<?= htmlspecialchars($values['address1'] ?? '') ?>">
+            <span class="error"><?= $errors['address1'] ?? '' ?></span>
+        </div>
+        <div class="form-group">
+            <label for="address2">Address 2* </label>
+            <input type="text" id="address2" name="address2" value="<?= htmlspecialchars($values['address2'] ?? '') ?>">
+        </div>
+        <div class="form-group">
+            <label for="city">City*</label>
+            <input type="text" id="city" name="city" required value="<?= htmlspecialchars($values['city'] ?? '') ?>">
+            <span class="error"><?= $errors['city'] ?? '' ?></span>
+        </div>
+        <div class="form-group">
+            <label for="state">State*</label>
+            <select name="state" id="state" required>
+                <option disabled <?= empty($values['state']) ? 'selected' : '' ?>>Select a State</option>
+                <option value="dhaka" <?= ($values['state'] ?? '') === 'dhaka' ? 'selected' : '' ?>>Dhaka</option>
+                <option value="khulna" <?= ($values['state'] ?? '') === 'khulna' ? 'selected' : '' ?>>khulna</option>
+                <option value="barishal" <?= ($values['state'] ?? '') === 'barishal' ? 'selected' : '' ?>>Barishal</option>
+                <option value="sylet" <?= ($values['state'] ?? '') === 'sylet' ? 'selected' : '' ?>>Sylet</option>
+                <option value="chattogram" <?= ($values['state'] ?? '') === 'chattogram' ? 'selected' : '' ?>>Chattogram</option>
+                <option value="rajshahi" <?= ($values['state'] ?? '') === 'rajshahi' ? 'selected' : '' ?>>Rajshahi</option>
+                <option value="mymensingh" <?= ($values['state'] ?? '') === 'mymensingh' ? 'selected' : '' ?>>Mymensingh</option>
+                <option value="rangput" <?= ($values['state'] ?? '') === 'rangput' ? 'selected' : '' ?>>Rangpur</option>
+            </select>
+            <span class="error"><?= $errors['state'] ?? '' ?></span>
+        </div>
+        <div class="form-group">
+            <label for="zipCode">Zip Code*</label>
+            <input type="number" name="zipCode" id="zipCode" required value="<?= htmlspecialchars($values['zipCode'] ?? '') ?>">
+            <span class="error"><?= $errors['zipCode'] ?? '' ?></span>
+        </div>
+        <div class="form-group">
+            <label for="country">Country* </label>
+            <select name="country" id="countrySelect" required>
+                <option disabled <?= empty($values['country']) ? 'selected' : '' ?>>Select a Country</option>
+                <option value="bangladesh" <?= ($values['country'] ?? '') === 'bangladesh' ? 'selected' : '' ?>>Bangladesh</option>
+                <option value="india" <?= ($values['country'] ?? '') === 'india' ? 'selected' : '' ?>>India</option>
+                <option value="nepal" <?= ($values['country'] ?? '') === 'nepal' ? 'selected' : '' ?>>Nepal</option>
+                <option value="pakistan" <?= ($values['country'] ?? '') === 'pakistan' ? 'selected' : '' ?>>Pakistan</option>
+                <option value="sriLanka" <?= ($values['country'] ?? '') === 'sriLanka' ? 'selected' : '' ?>>Sri-Lanka</option>
+                <option value="usa" <?= ($values['country'] ?? '') === 'usa' ? 'selected' : '' ?>>USA</option>
+                <option value="uk" <?= ($values['country'] ?? '') === 'uk' ? 'selected' : '' ?>>UK</option>
+                <option value="australia" <?= ($values['country'] ?? '') === 'australia' ? 'selected' : '' ?>>Australia</option>
+            </select>
+            <span class="error"><?= $errors['country'] ?? '' ?></span>
+        </div>
+        <div class="form-group">
+            <label for="phone">Phone </label>
+            <input type="number" id="phone" name="phone" value="<?= htmlspecialchars($values['phone'] ?? '') ?>">
+        </div>
+        <div class="form-group">
+            <label for="fax">Fax </label>
+            <input type="text" id="fax" name="fax" value="<?= htmlspecialchars($values['fax'] ?? '') ?>">
+        </div>
+        <div class="form-group">
+            <label for="email">Email* </label>
+            <input type="email" name="email" id="email" required value="<?= htmlspecialchars($values['email'] ?? '') ?>">
+            <span class="error"><?= $errors['email'] ?? '' ?></span>
+        </div>
+        <div class="form-group">
+            <label for="donationAmount" class="form-label">
+                Donation Amount* <br>
+                <small class="help-text">(Check a button or type in your amount)</small>
+            </label>
+            <div class="radio-options">
+                <label class="radio-label">
+                    <input type="radio" name="Amount" value="none" required <?= ($values['Amount'] ?? '') === 'none' ? 'checked' : '' ?>> None
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="Amount" value="50" <?= ($values['Amount'] ?? '') === '50' ? 'checked' : '' ?>> $50
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="Amount" value="75" <?= ($values['Amount'] ?? '') === '75' ? 'checked' : '' ?>> $75
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="Amount" value="100" <?= ($values['Amount'] ?? '') === '100' ? 'checked' : '' ?>> $100
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="Amount" value="250" <?= ($values['Amount'] ?? '') === '250' ? 'checked' : '' ?>> $250
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="Amount" value="other" <?= ($values['Amount'] ?? '') === 'other' ? 'checked' : '' ?>> Other
+                </label>
+            </div>
+            <span class="error"><?= $errors['Amount'] ?? '' ?></span>
+        </div>
+        <div class="form-group">
+            <label for=""> </label>
+            <div>
+                <label for="otherAmount">Other Amount $ </label>
+                <input type="number" name="amount" id="amount" value="<?= htmlspecialchars($values['amount'] ?? '') ?>">
+                <span class="error"><?= $errors['amount'] ?? '' ?></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="recurringDonation">
+                Recurring Donation <br>
+                <small class="help-text">(Check if yes)</small>
+            </label>
+            <div>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="recurringDonation" id="recurringDonation">I am interested in giving on
+                    a regular basis.
+                </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for=""></label>
+            <div>
+                <label>Monthly Credit Card $ </label>
+                <input type="number" name="money" id=""> <label> For </label>
+                <input type="number"><label> Months </label>
+            </div>
+        </div>
+
+        <h2>Honorarium and Memorial Donation Information</h2>
+
+        <div class="form-group">
+            <label for="donationFor">I would like to make this donation</label>
+            <div class="radio-options">
+                <label class="radio-label">
+                    <input type="radio" name="donationFor" value="toHonor"> To Honor
+                </label> <br>
+                <label class="radio-label">
+                    <input type="radio" name="donationFor" value="inMemoryOf"> In Memory of
+                </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="name">Name </label>
+            <input type="text" id="name" name="honorName" value="<?= htmlspecialchars($values['honorName'] ?? '') ?>">
+            <span class="error"><?= $errors['honorName'] ?? '' ?></span>
+        </div>
+        <div class="form-group">
+            <label for="acknowledgeDonation">Acknowledge Donation to</label>
+            <input type="text" name="acknowledgeDonation" id="acknowledgeDonation" value="<?= htmlspecialchars($values['acknowledgeDonation'] ?? '') ?>">
+        </div>
+        <div class="form-group">
+            <label for="address">Address</label>
+            <input type="text" name="address" id="address" value="<?= htmlspecialchars($values['address'] ?? '') ?>">
+        </div>
+        <div class="form-group">
+            <label for="city" id="">City </label>
+            <input type="text" id="city2" name="city2" value="<?= htmlspecialchars($values['city2'] ?? '') ?>">
+        </div>
+        <div class="form-group">
+            <label for="state">State*</label>
+            <select name="state" id="state" required>
+                <option disabled <?= empty($values['state']) ? 'selected' : '' ?>>Select a State</option>
+                <option value="dhaka" <?= ($values['state'] ?? '') === 'dhaka' ? 'selected' : '' ?>>Dhaka</option>
+                <option value="khulna" <?= ($values['state'] ?? '') === 'khulna' ? 'selected' : '' ?>>khulna</option>
+                <option value="barishal" <?= ($values['state'] ?? '') === 'barishal' ? 'selected' : '' ?>>Barishal</option>
+                <option value="sylet" <?= ($values['state'] ?? '') === 'sylet' ? 'selected' : '' ?>>Sylet</option>
+                <option value="chattogram" <?= ($values['state'] ?? '') === 'chattogram' ? 'selected' : '' ?>>Chattogram</option>
+                <option value="rajshahi" <?= ($values['state'] ?? '') === 'rajshahi' ? 'selected' : '' ?>>Rajshahi</option>
+                <option value="mymensingh" <?= ($values['state'] ?? '') === 'mymensingh' ? 'selected' : '' ?>>Mymensingh</option>
+                <option value="rangput" <?= ($values['state'] ?? '') === 'rangput' ? 'selected' : '' ?>>Rangpur</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="zip">Zip </label>
+            <input type="number" id="zip" name="zip" value="<?= htmlspecialchars($values['zip'] ?? '') ?>">
+        </div>
+
+        <h2>Additional Information</h2>
+        <label>Please enter your name, company or organization as you would like it to appear in our
+            publications:</label>
+        <div class="additionalInfo">
+            <div class="form-group">
+                <label for="additionalInfoName">Name </label>
+                <input type="text" name="additionalInfoName" id="additionalInfo" value="<?= htmlspecialchars($values['additionalInfoName'] ?? '') ?>">
+                <span class="error"><?= $errors['additionalInfoName'] ?? '' ?></span>
+            </div>
+
+            <div class="wish-checkbox">
+                <label class="wish-checkbox-label">
+                    <input type="checkbox" name="" id="">I would like my gift to remain anonymous.
+                </label><br>
+                <label class="wish-checkbox-label">
+                    <input type="checkbox">My employer offers a matching gift program. I will mail the matching
+                    gift
+                    form.
+                </label><br>
+                <label class="wish-checkbox-label">
+                    <input type="checkbox">Please save the cost of acknowledging this gift by not mailing a
+                    thank you
+                    letter.
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="comments">
+                    Comments <br>
+                    <small class="help-text">(Please type any questions or feedback here)</small>
+                </label>
+                <textarea id="comment" name="comment" rows="5" cols="50"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="contact">How may we contact you?</label>
+                <div class="checkbox-option">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="email"
+                            id="contactEmail">E-mail</label><br>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="postalMail" id="postalMail">Postal
+                        Mail</label><br>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="telephone"
+                            id="telephone">Telephone</label><br>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="fax" id="fax">Fax</label><br>
+                </div>
+            </div>
+            <label id="receive-info">I would like to receive newsletters and information about special events
+                by:</label>
+            <div class="form-group">
+                <label></label>
+                <div class="checkbox-oprion">
+                    <label class="checkbox-label"><input type="checkbox" name="email"
+                            id="contactEmail">E-mail</label><br>
+                    <label class="checkbox-label"><input type="checkbox" name="postalMail" id="postalMail">Postal
+                        Mail</label>
+                </div>
+            </div>
+            <label class="checkbox-label">
+                <input type="checkbox" id="volunter">I would like information about volunteering with the
+            </label>
+            <div class="buttonSection">
+                <button class="resetBtn" type="reset">Reset</button>
+                <button class="continueBtn" type="submit">Continue</button>
+            </div>
+    </form>
+</body>
+
+</html>
