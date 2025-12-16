@@ -35,69 +35,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_
 }
 
 include("../includes/header.php");
-include("../includes/navbar.php");
 ?>
 <link rel="stylesheet" href="/hotel_management_system/css/manage_bookings.css">
+
 <div class="container">
-<h2>All Bookings</h2>
+    <h2 class="page-title">Manage Bookings</h2>
 
-<?php if($error) echo "<div class='error'>{$error}</div>"; ?>
-<?php if($success) echo "<div class='success'>{$success}</div>"; ?>
+    <?php if($error) echo "<div class='alert alert-error'>{$error}</div>"; ?>
+    <?php if($success) echo "<div class='alert alert-success'>{$success}</div>"; ?>
 
-<table style="width:100%; border-collapse:collapse;">
-<thead>
-<tr>
-<th>ID</th>
-<th>User</th>
-<th>Room</th>
-<th>Check-in</th>
-<th>Check-out</th>
-<th>Status</th>
-<th>Actions</th>
-</tr>
-</thead>
-<tbody>
-<?php
-$q = "SELECT b.id,b.checkin,b.checkout,b.status,u.fullname,r.room_no,r.type
-      FROM bookings b
-      JOIN users u ON b.user_id=u.id
-      JOIN rooms r ON b.room_id=r.id
-      ORDER BY b.created_at DESC";
-$res = $conn->query($q);
-while($row = $res->fetch_assoc()):
+    <div class="table-responsive">
+        <table class="booking-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Room</th>
+                    <th>Check-in</th>
+                    <th>Check-out</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php
+            $q = "SELECT b.id,b.checkin,b.checkout,b.status,u.fullname,r.room_no,r.type
+                  FROM bookings b
+                  JOIN users u ON b.user_id=u.id
+                  JOIN rooms r ON b.room_id=r.id
+                  ORDER BY b.created_at DESC";
+            $res = $conn->query($q);
+            while($row = $res->fetch_assoc()):
 
-    // Set row color based on status
-    $row_color = '';
-    switch($row['status']){
-        case 'pending': $row_color = '#fff3cd'; break;       // yellow
-        case 'checked-in': $row_color = '#d4edda'; break;    // green
-        case 'checked-out': $row_color = '#cce5ff'; break;   // light blue
-        case 'cancelled': $row_color = '#f8d7da'; break;     // red
-    }
-?>
-<tr style="background-color: <?= $row_color ?>;">
-<td><?= $row['id'] ?></td>
-<td><?= htmlspecialchars($row['fullname']) ?></td>
-<td><?= htmlspecialchars($row['type']." (".$row['room_no'].")") ?></td>
-<td><?= $row['checkin'] ?></td>
-<td><?= $row['checkout'] ?></td>
-<td><?= $row['status'] ?></td>
-<td>
-    <form method="post" style="display:inline-block;">
-        <input type="hidden" name="booking_id" value="<?= $row['id'] ?>">
-        <?php if($row['status'] === 'pending'): ?>
-            <button type="submit" name="action" value="checkin">Check-in</button>
-            <button type="submit" name="action" value="cancel">Cancel</button>
-        <?php elseif($row['status'] === 'checked-in'): ?>
-            <button type="submit" name="action" value="checkout">Check-out</button>
-        <?php else: ?>
-            <span style="color:#555;">No actions</span>
-        <?php endif; ?>
-    </form>
-</td>
-</tr>
-<?php endwhile; ?>
-</tbody>
-</table>
+                // Set status class
+                $status_class = '';
+                switch($row['status']){
+                    case 'pending': $status_class = 'pending'; break;
+                    case 'checked-in': $status_class = 'checked-in'; break;
+                    case 'checked-out': $status_class = 'checked-out'; break;
+                    case 'cancelled': $status_class = 'cancelled'; break;
+                }
+            ?>
+                <tr>
+                    <td><?= $row['id'] ?></td>
+                    <td><?= htmlspecialchars($row['fullname']) ?></td>
+                    <td><?= htmlspecialchars($row['type']." (".$row['room_no'].")") ?></td>
+                    <td><?= fmtDateDisplay($row['checkin']) ?></td>
+                    <td><?= fmtDateDisplay($row['checkout']) ?></td>
+                    <td><span class="status <?= $status_class ?>"><?= ucfirst($row['status']) ?></span></td>
+                    <td>
+                        <?php if($row['status'] === 'pending'): ?>
+                            <form method="post" class="action-form">
+                                <input type="hidden" name="booking_id" value="<?= $row['id'] ?>">
+                                <button type="submit" name="action" value="checkin" class="btn btn-checkin">Check-in</button>
+                                <button type="submit" name="action" value="cancel" class="btn btn-cancel">Cancel</button>
+                            </form>
+                        <?php elseif($row['status'] === 'checked-in'): ?>
+                            <form method="post" class="action-form">
+                                <input type="hidden" name="booking_id" value="<?= $row['id'] ?>">
+                                <button type="submit" name="action" value="checkout" class="btn btn-checkout">Check-out</button>
+                            </form>
+                        <?php else: ?>
+                            <span class="no-action">No actions</span>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            <?php endwhile; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
+
 <?php include("../includes/footer.php"); ?>
