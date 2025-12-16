@@ -1,54 +1,117 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Sign Up - Hotel Management System</title>
-    <link rel="stylesheet" href="homepage.css">
-    <link rel="stylesheet" href="bookroom.css">
-</head>
-<body>
-    <header>
-        <h1>Grand Palace Hotel</h1>
-        <p>“Step into Comfort, Stay with Elegance"</p>
-    </header>
-    <nav>
-        <a href="homepage.php">Home</a>
-        <a href="booking.php">Book a Room</a>
-        <a href="rooms.php">Rooms</a>
-        <a href="customers.php">Customers</a>
-        <a href="staff.php">Staff</a>
-        <a href="signin.php">Sign In</a>
-        <a href="signout.php">Sign Out</a>
-    </nav>
-    <div class="container">
-        <h2 style="color:#3498db;">Sign Up</h2>
-        <form class="bookroom-form" method="post" action="signup.php">
-            <label for="fullname">Full Name</label>
-            <input type="text" id="fullname" name="fullname" required>
+<?php
+require_once "includes/db.php";
+session_start();
 
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" required>
+if (isset($_SESSION['usertype'])) {
+    header("Location: /hotel_management_system/index.php");
+    exit;
+}
 
-             <label for="phone">Phone Number</label>
-            <input type="text" id="phone" name="phone" required>
+// Initialize variables
+$fullname = $email = $phone = $nid = $password = $usertype = '';
+$errors = [];
+$success = '';
 
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
+// Process form submission
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $fullname = trim($_POST['fullname'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $nid = trim($_POST['nid_passport'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $usertype = $_POST['usertype'] ?? 'guest';
 
-           
+    // Validation
+    if (!$fullname) $errors['fullname'] = "Full name is required.";
+    if (!$email) $errors['email'] = "Email is required.";
+    elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors['email'] = "Invalid email format.";
 
-            <button type="submit">Sign Up</button>
-        </form>
-        <?php
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $fullname = htmlspecialchars($_POST["fullname"]);
-            $email = htmlspecialchars($_POST["email"]);
-            $username = htmlspecialchars($_POST["username"]);
-            $phone = htmlspecialchars($_POST["phone"]);
-            // Password handling should be secure in production
-            echo "<div class='confirmation'><h3>Sign Up Successful!</h3><p>Welcome, <strong>$fullname</strong>! Your account has been created.</p></div>";
+    if (!$phone) $errors['phone'] = "Phone is required.";
+
+    if (!$nid) $errors['nid_passport'] = "NID / Passport is required.";
+
+    if (!$password) $errors['password'] = "Password is required.";
+    elseif (strlen($password) < 6) $errors['password'] = "Password must be at least 6 characters.";
+
+    if (!in_array($usertype, ['guest','receptionist'])) $errors['usertype'] = "Invalid user type.";
+
+    // Check email uniqueness if no email error
+    if (empty($errors['email'])) {
+        $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt->bind_param("s",$email);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res && $res->num_rows > 0) $errors['email'] = "Email already registered.";
+        $stmt->close();
+    }
+
+    // If no errors, insert into DB
+    if (empty($errors)) {
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $status = ($usertype === 'receptionist') ? 'pending' : 'active';
+
+        $stmt2 = $conn->prepare("INSERT INTO users (fullname,email,phone,nid_passport,password,usertype,status) VALUES (?,?,?,?,?,?,?)");
+        $stmt2->bind_param("sssssss",$fullname,$email,$phone,$nid,$hash,$usertype,$status);
+        if ($stmt2->execute()) {
+            $success = ($status === 'pending') 
+                ? "Sign up successful! Receptionist account is pending admin approval." 
+                : "Sign up successful! You can now sign in.";
+            // Clear form values
+            $fullname = $email = $phone = $nid = $password = '';
+            $usertype = 'guest';
+        } else {
+            $errors['general'] = "Database error: " . $conn->error;
         }
-        ?>
-    </div>
-</body>
-</html>
+        $stmt2->close();
+    }
+}
+?>
+
+<?php include("includes/header.php"); include("includes/navbar.php"); ?>
+<link rel="stylesheet" href="/hotel_management_system/css/signup.css">
+
+<div class="container">
+<h2>Sign Up</h2>
+
+<?php if (!empty($errors['general'])) echo "<div class='error'>{$errors['general']}</div>"; ?>
+<?php if ($success) echo "<div class='success'>{$success}</div>"; ?>
+
+<form method="post" action="signup.php">
+
+    <label>Full Name</label>
+    <input type="text" name="fullname" value="<?= htmlspecialchars($fullname) ?>">
+    <?php if(!empty($errors['fullname'])) echo "<span class='error-inline'>{$errors['fullname']}</span>"; ?>
+
+    <label>Email</label>
+    <input type="email" name="email" value="<?= htmlspecialchars($email) ?>">
+    <?php if(!empty($errors['email'])) echo "<span class='error-inline'>{$errors['email']}</span>"; ?>
+
+    <label>Phone</label>
+    <input type="text" name="phone" value="<?= htmlspecialchars($phone) ?>">
+    <?php if(!empty($errors['phone'])) echo "<span class='error-inline'>{$errors['phone']}</span>"; ?>
+
+    <label>NID / Passport</label>
+    <input type="text" name="nid_passport" value="<?= htmlspecialchars($nid) ?>" placeholder="NID or Passport no">
+    <?php if(!empty($errors['nid_passport'])) echo "<span class='error-inline'>{$errors['nid_passport']}</span>"; ?>
+
+    <label>Password</label>
+    <input type="password" name="password" value="<?= htmlspecialchars($password) ?>">
+    <?php if(!empty($errors['password'])) echo "<span class='error-inline'>{$errors['password']}</span>"; ?>
+
+    <label>Sign up as</label>
+    <select name="usertype">
+        <option value="guest" <?= $usertype==='guest'?'selected':'' ?>>Guest</option>
+        <option value="receptionist" <?= $usertype==='receptionist'?'selected':'' ?>>Receptionist (needs admin approval)</option>
+    </select>
+    <?php if(!empty($errors['usertype'])) echo "<span class='error-inline'>{$errors['usertype']}</span>"; ?>
+
+    <button type="submit">Register</button>
+</form>
+</div>
+
+<style>
+/* Inline error style */
+.error-inline { display:block; color:#c0392b; font-size:0.9em; margin-top:2px; }
+</style>
+
+<?php include("includes/footer.php"); ?>
