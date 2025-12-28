@@ -68,7 +68,7 @@ Features include:
 ---
 
 ## Credits
-- Developed by **[Rakibul Hasan Shakil]**  
+- Developed by **[MD.SIAM-UL-ISLAM and Team]**  
 - Uses **PHP**, **MySQL**, **HTML**, **CSS**, **JavaScript**.  
 
 ---
